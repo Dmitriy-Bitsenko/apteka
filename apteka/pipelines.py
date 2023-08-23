@@ -10,4 +10,8 @@ from itemadapter import ItemAdapter
 
 class AptekaPipeline:
     def process_item(self, item, spider):
+        # adapter = ItemAdapter(item)
+        # count = adapter.get("count")
+        # adapter["count"] = int(count)
         return item
+

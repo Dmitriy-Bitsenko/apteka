@@ -7,6 +7,21 @@ import scrapy
 
 
 class AptekaItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
+    # timestamp = scrapy.Field()
+    # RPC = scrapy.Field()
+    # title = scrapy.Field()
+    # marketing_tags = scrapy.Field()
+    # section = scrapy.Field()
+    # current = scrapy.Field()
+    # original = scrapy.Field()
+    # sale_tag = scrapy.Field()
+    # in_stock = scrapy.Field()
+    # count = scrapy.Field()
+    # main_image = scrapy.Field()
+    # set_images = scrapy.Field()
+    # view360 = scrapy.Field()
+    # video = scrapy.Field()
+    # __description = scrapy.Field()
+    # АРТИКУЛ = scrapy.Field()
+    # СТРАНА_ПРОИЗВОДИТЕЛЬ = scrapy.Field()
     pass

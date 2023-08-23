@@ -9,34 +9,14 @@ class AptekaspiderSpider(scrapy.Spider):
         "https://apteka-ot-sklada.ru/catalog/letnie-serii/dlya-zagara",
         "https://apteka-ot-sklada.ru/catalog/tovary-dlya-mamy-i-malysha/butylochki/butylochki-s-rozhdeniya-_0-_",]
 
-
     def parse(self, response):
         products = response.css(".ui-card_outlined.goods-card.goods-grid__cell.goods-grid__cell_size_3")
         for product in products:
-            next_url = product.css(".goods-card__name.text.text_size_default.text_weight_medium a").attrib['href']
-            if 'catalog/' in next_url:
-                product_url = 'https://apteka-ot-sklada.ru/' + next_url
-            else:
-                product_url = 'https://apteka-ot-sklada.ru/' + next_url
-            yield scrapy.Request(product_url, callback=self.parse_all)
-
-            next_page = response.css(".ui-pagination__item_next a::attr(href)").get()
-            if next_page is not None:
-                if "/catalog/" in next_page:
-                    next_page_url = "" + next_page
-                else:
-                    next_page_url = "https://apteka-ot-sklada.ru/catalog" + next_page
-                yield response.follow(next_page_url, callback=self.parse)
-
-        # for product in products:
-
-    def parse_all(self, response):
-        product = response.css(".ui-card_outlined.goods-card.goods-grid__cell.goods-grid__cell_size_3")
-        yield {
+            yield {
                 "timestamp": datetime.datetime.now(),
                 "RPC": '',
-                "title": response.css(".goods-card__name.text.text_size_default.text_weight_medium a span::text").get(),
-                "url": response.url,
+                "title": product.css(".goods-card__name.text.text_size_default.text_weight_medium a span::text").get(),
+                "url": 'https://apteka-ot-sklada.ru'+product.css(".text_weight_medium a").attrib['href'],
                 "marketing_tags": product.css("li.goods-tags__item span::text").getall(),
                 "brand": product.xpath("//div/div[1]/div[2]/div[2]/div/span[2]/text()").get(),
                 "section": response.xpath("//main/header/div[1]/ul/li/a/span/span/text()").getall(),
@@ -60,13 +40,10 @@ class AptekaspiderSpider(scrapy.Spider):
                     "СТРАНА ПРОИЗВОДИТЕЛЬ": product.css(".goods-card__producer.text span::text").get(),
                     }
             }
-            # next_page = response.css(".ui-pagination__item_next a::attr(href)").get()
-            #
-            # if next_page is not None:
-            #     if "/catalog/" in next_page:
-            #         next_page_url = "" + next_page
-            #     else:
-            #         next_page_url = "https://apteka-ot-sklada.ru/catalog/" + next_page
-            #     yield response.follow(next_page_url, callback=self.parse)
-
-
+            next_page = response.css(".ui-pagination__item_next a::attr(href)").get()
+            if next_page is not None:
+                if "/catalog/" in next_page:
+                    next_page_url = "" + next_page
+                else:
+                    next_page_url = "https://apteka-ot-sklada.ru/catalog/" + next_page
+                yield response.follow(next_page_url, callback=self.parse)
