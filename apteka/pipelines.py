@@ -6,12 +6,14 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
+from scrapy.exceptions import DropItem
 
 
 class AptekaPipeline:
     def process_item(self, item, spider):
-        # adapter = ItemAdapter(item)
-        # count = adapter.get("count")
-        # adapter["count"] = int(count)
+        #adapter = ItemAdapter(item)
+        # if item["main_image"] == item["set_images"]:
+        #     raise DropItem(item)
+
         return item
 

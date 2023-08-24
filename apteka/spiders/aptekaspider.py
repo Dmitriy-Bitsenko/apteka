@@ -1,6 +1,15 @@
+from urllib.request import Request
+
 import scrapy
 import datetime
+
 from apteka.items import AptekaItem
+
+# def start_requests(self):
+#     for url in self.start_urls:
+#         return Request(url=url, callback=self.parse,
+#                        meta={"proxy": "http://PoZU01:xpKrUY@200.10.39.181:8000"})
+
 
 class AptekaspiderSpider(scrapy.Spider):
     name = "aptekaspider"
@@ -9,64 +18,56 @@ class AptekaspiderSpider(scrapy.Spider):
         "https://apteka-ot-sklada.ru/catalog/letnie-serii/dlya-zagara",
         "https://apteka-ot-sklada.ru/catalog/tovary-dlya-mamy-i-malysha/butylochki/butylochki-s-rozhdeniya-_0-_",]
 
-
     def parse(self, response):
         products = response.css(".ui-card_outlined.goods-card.goods-grid__cell.goods-grid__cell_size_3")
         for product in products:
             next_url = product.css(".goods-card__name.text.text_size_default.text_weight_medium a").attrib['href']
-            if 'catalog/' in next_url:
-                product_url = 'https://apteka-ot-sklada.ru/' + next_url
+            if 'catalog' in next_url:
+                product_url = 'https://apteka-ot-sklada.ru' + next_url
             else:
-                product_url = 'https://apteka-ot-sklada.ru/' + next_url
+                product_url = 'https://apteka-ot-sklada.ru' + next_url
             yield scrapy.Request(product_url, callback=self.parse_all)
 
             next_page = response.css(".ui-pagination__item_next a::attr(href)").get()
             if next_page is not None:
-                if "/catalog/" in next_page:
+                if "catalog" in next_page:
                     next_page_url = "" + next_page
                 else:
-                    next_page_url = "https://apteka-ot-sklada.ru/catalog" + next_page
+                    next_page_url = "https://apteka-ot-sklada.ru" + next_page
                 yield response.follow(next_page_url, callback=self.parse)
-
-        # for product in products:
 
     def parse_all(self, response):
         product = response.css(".ui-card_outlined.goods-card.goods-grid__cell.goods-grid__cell_size_3")
-        yield {
-                "timestamp": datetime.datetime.now(),
-                "RPC": '',
-                "title": response.css(".goods-card__name.text.text_size_default.text_weight_medium a span::text").get(),
-                "url": response.url,
-                "marketing_tags": product.css("li.goods-tags__item span::text").getall(),
-                "brand": product.xpath("//div/div[1]/div[2]/div[2]/div/span[2]/text()").get(),
-                "section": response.xpath("//main/header/div[1]/ul/li/a/span/span/text()").getall(),
-                "price_data": {
-                    "current": '',
-                    "original":  product.css("a .ui-link__text span::text").get(),
-                    "sale_tag": ''},
-                "stock": {
-                    "in_stock": product.css(".goods-card__delivery-availability.text.text_weight_medium span::text").get(),
-                    "count": product.css(".goods-card__delivery-availability.text.text_weight_medium span::text").get(),
-                    },
-                "assets": {
+        product_item = AptekaItem()
+        product_item["timestamp"] = datetime.datetime.now()
+        product_item["RPC"] = response.css(".goods-photo.goods-gallery__picture").attrib['src'][14:23]
+        product_item["title"] = response.css("h1 span::text").get()
+        product_item["url"] = response.url
+        product_item["marketing_tags"] = product.css(".ui-tag_theme_secondary::text").get()
+        product_item["brand"] = response.xpath("//*[@id='__layout']/div/div[3]/main/header/div[2]/div/span[2]/text()").get()
+        product_item["section"] = response.xpath("//main/header/div[1]/ul/li/a/span/span/text()").getall()
+        product_item["price_data"] = {
+            "current": '',
+            "original": response.css(".text_weight_medium.ui-link_theme_primary span span::text").get(),
+            "sale_tag": ''
+        }
+        product_item["stock"] = {
+                    "in_stock": response.css(".text_weight_medium.ui-link_theme_primary span::text").get(),
+                    "count": response.css(".text_weight_medium.ui-link_theme_primary span::text").get(),
+                    }
+        product_item["assets"] = {
                     "main_image": 'https://apteka-ot-sklada.ru'+[img.attrib["src"] for img in response.css("img")][2],
-                    "set_images": [img.attrib["src"] for img in response.css("img")][2:5],
+                    "set_images": ['https://apteka-ot-sklada.ru'+ img.attrib["src"] for img in response.css("img")][2:4],
                     "view360": '',
                     "video": '',
-                    },
-                "metadata": {
+                    }
+        product_item["metadata"] = {
                     "__description": response.xpath('//*[@id="description"]/div/div[1]/div').get(),
                     "АРТИКУЛ": "",
-                    "СТРАНА ПРОИЗВОДИТЕЛЬ": product.css(".goods-card__producer.text span::text").get(),
+                    "СТРАНА ПРОИЗВОДИТЕЛЬ": response.xpath('//*[@id="__layout"]/div/div[3]/main/header/div[2]/div/span[1]/text()').get(),
                     }
-            }
-            # next_page = response.css(".ui-pagination__item_next a::attr(href)").get()
-            #
-            # if next_page is not None:
-            #     if "/catalog/" in next_page:
-            #         next_page_url = "" + next_page
-            #     else:
-            #         next_page_url = "https://apteka-ot-sklada.ru/catalog/" + next_page
-            #     yield response.follow(next_page_url, callback=self.parse)
+        product_item["variants"] = {}
+
+        yield product_item
 
 
