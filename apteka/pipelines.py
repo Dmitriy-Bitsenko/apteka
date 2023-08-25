@@ -10,10 +10,8 @@ from scrapy.exceptions import DropItem
 
 
 class AptekaPipeline:
+
     def process_item(self, item, spider):
-        #adapter = ItemAdapter(item)
-        # if item["main_image"] == item["set_images"]:
-        #     raise DropItem(item)
 
         return item
 

@@ -1,14 +1,18 @@
+import base64
 from urllib.request import Request
 
 import scrapy
 import datetime
+import time
 
 from apteka.items import AptekaItem
 
-# def start_requests(self):
-#     for url in self.start_urls:
-#         return Request(url=url, callback=self.parse,
-#                        meta={"proxy": "http://PoZU01:xpKrUY@200.10.39.181:8000"})
+
+def start_requests(self):
+    request = Request('https://proxy6.net', callback=self.parse)
+    request.meta['proxy'] = 'http://200.10.39.181:8000'
+    request.headers['Proxy-Authorization'] = 'Basic ' + base64.encodestring('PoZU01:xpKrUY')
+    return request
 
 
 class AptekaspiderSpider(scrapy.Spider):
@@ -39,11 +43,11 @@ class AptekaspiderSpider(scrapy.Spider):
     def parse_all(self, response):
         product = response.css(".ui-card_outlined.goods-card.goods-grid__cell.goods-grid__cell_size_3")
         product_item = AptekaItem()
-        product_item["timestamp"] = datetime.datetime.now()
+        product_item["timestamp"] = time.time() #datetime.datetime.now()
         product_item["RPC"] = response.css(".goods-photo.goods-gallery__picture").attrib['src'][14:23]
         product_item["title"] = response.css("h1 span::text").get()
         product_item["url"] = response.url
-        product_item["marketing_tags"] = product.css(".ui-tag_theme_secondary::text").get()
+        product_item["marketing_tags"] = response.css(".goods-tags__item span::text").get()
         product_item["brand"] = response.xpath("//*[@id='__layout']/div/div[3]/main/header/div[2]/div/span[2]/text()").get()
         product_item["section"] = response.xpath("//main/header/div[1]/ul/li/a/span/span/text()").getall()
         product_item["price_data"] = {
